@@ -1,0 +1,3 @@
+This is a simple plaintext file.
+It will be encrypted using AES.
+Testing ECB, CBC, and CFB modes.
