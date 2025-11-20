@@ -68,7 +68,7 @@ def ngram_bonus(text):
     t = ''.join(only_letters(text))
     bonus = 0
     for ng in COMMON_NGRAMS:
-        bonus += 2 * t.count(ng) * len(ng)  # longer n-gram -> বেশি বোনাস
+        bonus += 2 * t.count(ng) * len(ng)  # longer n-gram -
     return bonus
 
 def word_bonus(text):
@@ -78,29 +78,24 @@ def word_bonus(text):
     return 3 * hits
 
 def score(text):
-    # কম স্কোর ভালো (chi-square), তাই বোনাসগুলো minus করে দিচ্ছি
     return monogram_chisq(text) - ngram_bonus(text) - word_bonus(text)
 
 def make_initial_key(ct):
-    # frequency mapping: cipher freq rank -> ETAOIN rank
     letters = only_letters(ct)
     freq = Counter(letters)
     cipher_order = ''.join([p for p,_ in freq.most_common()])
-    # বাকিগুলো অ্যাপেন্ড
     for c in string.ascii_lowercase:
         if c not in cipher_order:
             cipher_order += c
     mapping = {}
     for i,c in enumerate(cipher_order):
         mapping[c] = ETAOIN[i] if i < 26 else c
-    # mapping -> key string (plain_for_cipher[c])
     key = ['?']*26
     for i,c in enumerate(string.ascii_lowercase):
         key[i] = mapping[c]
-    return ''.join(key)  # key[i]=plain letter for cipher chr(97+i)
+    return ''.join(key)
 
 def apply_key(ct, key):
-    # key: 26-length string; for cipher 'a'..'z' gives corresponding plain
     table = {c:key[i] for i,c in enumerate(string.ascii_lowercase)}
     out=[]
     for ch in ct:
@@ -128,7 +123,7 @@ def improve(ct, key, iters=4000):
         cand = random_swap(cur)
         cand_plain = apply_key(ct, cand)
         cand_score = score(cand_plain)
-        if cand_score < cur_score or random.random() < 0.001:  # ছোট্ট এক্সপ্লোরেশন
+        if cand_score < cur_score or random.random() < 0.001:  
             cur, cur_score = cand, cand_score
             if cur_score < best_score:
                 best, best_plain, best_score = cur, cand_plain, cand_score
@@ -138,7 +133,6 @@ def break_substitution(ct, restarts=20, iters=4000):
     best_key, best_plain, best_score = None, None, 1e18
     init = make_initial_key(ct)
     for r in range(restarts):
-        # প্রতিবার সামান্য শাফল দিয়ে শুরু
         key0 = init
         for _ in range(200): key0 = random_swap(key0)
         k, p, s = improve(ct, key0, iters)
